@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="#{title}">Polka.Search</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="page-container">
+    <header>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <div>
+                <h1 th:text="#{title}">Polka.Search</h1>
+                <p th:text="#{description}">Find local businesses and events near you.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <button type="button" onclick="toggleTheme()">Theme</button>
+                <a th:href="@{/?lang=en}">EN</a>
+                <a th:href="@{/?lang=pl}">PL</a>
+                <a th:href="@{/?lang=uk}">UK</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="search-panel">
+        <form action="#" th:action="@{/}" th:object="${criteria}" method="get">
+            <div class="form-group">
+                <label for="query" th:text="#{search.label}">Search</label>
+                <input type="text" id="query" name="query" th:field="*{query}" th:attr="placeholder=#{search.placeholder}" />
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="latitude" th:text="#{latitude}">Latitude</label>
+                    <input type="number" step="0.0001" id="latitude" name="latitude" th:field="*{latitude}" />
+                </div>
+                <div class="form-group">
+                    <label for="longitude" th:text="#{longitude}">Longitude</label>
+                    <input type="number" step="0.0001" id="longitude" name="longitude" th:field="*{longitude}" />
+                </div>
+                <div class="form-group">
+                    <label for="radius" th:text="#{radius}">Radius (km)</label>
+                    <input type="number" id="radius" name="radius" th:field="*{radius}" min="1" />
+                </div>
+            </div>
+            <button type="submit" th:text="#{search.button}">Search</button>
+        </form>
+    </section>
+
+    <section class="results-panel">
+        <div class="result-header">
+            <h2 th:text="#{results.found(${resultCount})}"></h2>
+        </div>
+
+        <div class="result-list">
+            <div class="result-item" th:each="result : ${results}">
+                <div class="result-label" th:text="${result.type}"></div>
+                <h3 th:text="${result.name}"></h3>
+                <p class="result-category" th:text="${result.category}"></p>
+                <p th:text="${result.description}"></p>
+                <p class="result-info">
+                    <span th:text="${result.address}"></span>
+                    <span th:text="#{distance.label} + ' ' + ${#numbers.formatDecimal(result.distance, 1, 'POINT', 1, 'NONE')} + ' km'"></span>
+                    <span th:if="${result.eventDate}" th:text="#{starts.label} + ' ' + ${#temporals.format(result.eventDate, 'yyyy-MM-dd HH:mm')}"></span>
+                </p>
+                <div class="result-tags">
+                    <span class="tag" th:each="tag : ${result.tags}" th:text="${tag}"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="updates-panel">
+        <div class="updates-header">
+            <h2 th:text="#{latest.updates}">Latest Business Updates</h2>
+        </div>
+        <div class="updates-feed">
+            <div class="update-card" th:each="update : ${latestUpdates}">
+                <div class="update-header">
+                    <div class="update-business">
+                        <span class="update-icon" th:text="${update.icon}"></span>
+                        <div class="update-meta">
+                            <h4 th:text="${update.businessName}"></h4>
+                            <p class="update-category" th:text="${update.category}"></p>
+                        </div>
+                    </div>
+                    <span class="update-type" th:text="${update.updateType == 'deal' ? #{update.type.deal} : (update.updateType == 'event' ? #{update.type.event} : #{update.type.news})}"></span>
+                </div>
+                <p class="update-content" th:text="${update.content}"></p>
+                <div class="update-footer">
+                    <span class="update-time" th:text="#{update.posted(${#temporals.format(update.postedAt, 'HH:mm')})}"></span>
+                    <span class="update-likes">❤️ <span th:text="${update.likes}"></span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script th:src="@{/js/theme-i18n.js}"></script>
+</body>
+</html>
