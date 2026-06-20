@@ -17,6 +17,7 @@ import { getPlaceImage } from '@/lib/images';
 import AiSearchBar from './AiSearchBar';
 import NewsTicker from './NewsTicker';
 import DetailModal, { getRating, getOpenStatus } from './DetailModal';
+import FeedbackModal from './FeedbackModal';
 
 interface Props {
   initialResults: SearchResult[];
@@ -221,6 +222,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [visitors, setVisitors] = useState(0);
   const [now, setNow] = useState(new Date());
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [likes, setLikes] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -603,6 +605,8 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           />
         )}
 
+        {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+
         <footer className="site-footer">
           <div className="footer-inner">
             <span className="footer-item">
@@ -626,6 +630,10 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             <span className="footer-item footer-attr">
               Dane: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · <a href="https://wikipedia.org" target="_blank" rel="noopener">Wikipedia</a>
             </span>
+            <span className="footer-sep">·</span>
+            <button className="footer-feedback-btn" onClick={() => setFeedbackOpen(true)}>
+              Opinie
+            </button>
           </div>
         </footer>
       </div>
