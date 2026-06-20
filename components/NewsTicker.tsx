@@ -82,7 +82,7 @@ export default function NewsTicker({ locationLabel }: { locationLabel: string })
     // normalise offset into [0, halfWidth)
     const norm = ((currentOffset.current % halfWidth) + halfWidth) % halfWidth;
     const pct  = norm / halfWidth; // 0–1
-    const duration = 60; // seconds
+    const duration = 120; // seconds
     const delay = -(pct * duration);
     el.style.transform = '';
     el.style.animation = `ticker-scroll ${duration}s ${delay}s linear infinite`;
