@@ -1263,21 +1263,30 @@ a { color: inherit; text-decoration: none; }
 /* Mobile */
 @media (max-width: 640px) {
   /* Nav row 1: compact */
-  .nav-row1 { padding: 0 10px; gap: 6px; }
-  .nav-logo { font-size: 1rem; }
+  .nav-row1 { padding: 0 10px; gap: 6px; flex-wrap: nowrap; }
+  .nav-logo { font-size: 1rem; flex-shrink: 0; }
   .nav-logo span { display: none; } /* hide ".Search" */
-  .nav-location-group { gap: 4px; flex: 1; justify-content: flex-end; }
+  .nav-location-group { gap: 4px; flex: 1; min-width: 0; justify-content: flex-end; overflow: hidden; }
 
   /* hide verbose buttons, keep icon-only versions */
   .locate-mini-btn .locate-label { display: none; }
 
   /* weather pill: icon+temp only */
   .weather-desc-text { display: none; }
-  .weather-inline { padding: 4px 8px; font-size: 0.75rem; gap: 4px; }
+  .weather-inline { padding: 4px 8px; font-size: 0.75rem; gap: 4px; flex-shrink: 0; }
+
+  /* location text: truncate */
+  .location-text {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+  }
 
   /* location pill: truncate */
-  .locate-mini-btn[data-location] {
-    max-width: 120px;
+  .locate-mini-btn {
+    max-width: 110px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
