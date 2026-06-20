@@ -15,6 +15,7 @@ import {
 } from './Icons';
 import { getPlaceImage } from '@/lib/images';
 import AiSearchBar from './AiSearchBar';
+import NewsTicker from './NewsTicker';
 
 interface Props {
   initialResults: SearchResult[];
@@ -186,6 +187,11 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [addressInput, setAddressInput] = useState('');
   const [error, setError]       = useState<string | null>(null);
   const [weather, setWeather]   = useState<{ temp: number; icon: React.ReactNode; desc: string } | null>(null);
+  const [weatherOpen, setWeatherOpen] = useState(false);
+  const [forecast, setForecast] = useState<{
+    hourly: { time: string; temp: number; code: number; rain: number }[];
+    daily:  { date: string; max: number; min: number; code: number; rain: number }[];
+  } | null>(null);
   const [enabledCats, setEnabledCats] = useState<Set<string>>(DEFAULT_ACTIVE);
   const [personalizujOpen, setPersonalizujOpen] = useState(false);
   const [tabsOverflow, setTabsOverflow] = useState(false);
@@ -229,13 +235,40 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   useEffect(() => {
     const lat = parseFloat(latitude), lon = parseFloat(longitude);
     if (isNaN(lat) || isNaN(lon)) return;
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`)
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+      + `&current=temperature_2m,weathercode`
+      + `&hourly=temperature_2m,weathercode,precipitation_probability`
+      + `&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max`
+      + `&timezone=auto&forecast_days=5`;
+    fetch(url)
       .then(r => r.json())
       .then(d => {
         const code = d.current.weathercode as number;
         setWeather({ temp: Math.round(d.current.temperature_2m), icon: weatherIcon(code), desc: weatherDesc(code) });
+
+        // find current hour index
+        const nowISO = new Date().toISOString().slice(0, 13);
+        const startIdx = (d.hourly.time as string[]).findIndex(t => t.startsWith(nowISO));
+        const si = startIdx >= 0 ? startIdx : 0;
+
+        setForecast({
+          hourly: (d.hourly.time as string[]).slice(si, si + 12).map((t: string, i: number) => ({
+            time: t.slice(11, 16),
+            temp: Math.round(d.hourly.temperature_2m[si + i]),
+            code: d.hourly.weathercode[si + i],
+            rain: d.hourly.precipitation_probability[si + i] ?? 0,
+          })),
+          daily: (d.daily.time as string[]).map((t: string, i: number) => ({
+            date: t,
+            max:  Math.round(d.daily.temperature_2m_max[i]),
+            min:  Math.round(d.daily.temperature_2m_min[i]),
+            code: d.daily.weathercode[i],
+            rain: d.daily.precipitation_probability_max[i] ?? 0,
+          })),
+        });
       }).catch(() => {});
   }, [latitude, longitude]);
+
 
   const doSearch = useCallback(async (q: string, lat: string, lon: string, rad: string) => {
     setLoading(true); setError(null);
@@ -326,11 +359,46 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
 
             <div className="nav-location-group">
               {weather && (
-                <span className="weather-inline">
-                  {weather.icon}
-                  <span>{weather.temp}°C</span>
-                  <span className="weather-desc-text">{weather.desc}</span>
-                </span>
+                <div className="weather-wrap">
+                  <button className="weather-inline" onClick={() => setWeatherOpen(o => !o)}>
+                    {weather.icon}
+                    <span>{weather.temp}°C</span>
+                    <span className="weather-desc-text">{weather.desc}</span>
+                  </button>
+                  {weatherOpen && forecast && (
+                    <div className="weather-panel">
+                      <div className="personalize-header">
+                        <span>Prognoza pogody</span>
+                        <button className="icon-btn" onClick={() => setWeatherOpen(false)}>✕</button>
+                      </div>
+
+                      <div className="weather-panel-section-label">Najbliższe godziny</div>
+                      <div className="weather-hourly">
+                        {forecast.hourly.map((h, i) => (
+                          <div key={i} className="weather-hour-cell">
+                            <span className="wh-time">{h.time}</span>
+                            <span className="wh-icon">{weatherIcon(h.code)}</span>
+                            <span className="wh-temp">{h.temp}°</span>
+                            {h.rain > 0 && <span className="wh-rain">{h.rain}%</span>}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="weather-panel-section-label" style={{ marginTop: 14 }}>Najbliższe dni</div>
+                      <div className="weather-daily">
+                        {forecast.daily.map((d, i) => (
+                          <div key={i} className="weather-day-row">
+                            <span className="wd-date">{new Date(d.date).toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                            <span className="wd-icon">{weatherIcon(d.code)}</span>
+                            <span className="wd-desc">{weatherDesc(d.code)}</span>
+                            {d.rain > 0 && <span className="wh-rain">{d.rain}%</span>}
+                            <span className="wd-temps"><strong>{d.max}°</strong> / <span style={{color:'var(--text2)'}}>{d.min}°</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
               <span className="locate-mini-btn" style={{ cursor: 'default' }}>
                 <IconPin /> {locationLabel}
@@ -347,6 +415,8 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
               <button className="icon-btn" onClick={() => setDark(d => !d)} title="Motyw">{dark ? <IconSun /> : <IconMoon />}</button>
             </div>
           </div>
+
+          <NewsTicker locationLabel={locationLabel} />
 
           {/* ── Wiersz 2: taby · EN/PL/UK · Personalizuj ── */}
           <div className="nav-row2">
