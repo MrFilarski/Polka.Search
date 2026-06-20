@@ -605,8 +605,6 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           />
         )}
 
-        {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
-
         <footer className="site-footer">
           <div className="footer-inner">
             <span className="footer-item">
@@ -637,6 +635,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           </div>
         </footer>
       </div>
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
     </>
   );
 }
