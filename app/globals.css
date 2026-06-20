@@ -64,6 +64,7 @@ a { color: inherit; text-decoration: none; }
 /* ── Light theme: frosted glass bez backdrop-filter ───────── */
 .light-theme .top-nav,
 .light-theme .location-bar,
+.light-theme .weather-bar,
 .light-theme .search-bar,
 .light-theme .hero-card,
 .light-theme .grid-card,
@@ -291,6 +292,22 @@ a { color: inherit; text-decoration: none; }
   gap: 12px;
   padding: 7px 20px;
 }
+
+.weather-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 0.82rem;
+  color: var(--text2);
+}
+.weather-icon { font-size: 1rem; line-height: 1; }
+.weather-temp { font-weight: 600; color: var(--text); }
+.weather-desc { color: var(--text2); }
 
 .location-text {
   font-size: 0.78rem;

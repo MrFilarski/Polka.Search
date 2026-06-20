@@ -131,6 +131,20 @@ function UpdateCard({ update }: { update: BusinessUpdate }) {
   );
 }
 
+function weatherCodeInfo(code: number): { desc: string; icon: string } {
+  if (code === 0) return { desc: 'Bezchmurnie', icon: '☀️' };
+  if (code <= 2) return { desc: 'Częściowe zachmurzenie', icon: '🌤️' };
+  if (code === 3) return { desc: 'Zachmurzenie', icon: '☁️' };
+  if (code <= 49) return { desc: 'Mgła', icon: '🌫️' };
+  if (code <= 57) return { desc: 'Mżawka', icon: '🌦️' };
+  if (code <= 67) return { desc: 'Deszcz', icon: '🌧️' };
+  if (code <= 77) return { desc: 'Śnieg', icon: '❄️' };
+  if (code <= 82) return { desc: 'Przelotny deszcz', icon: '🌦️' };
+  if (code <= 86) return { desc: 'Przelotny śnieg', icon: '🌨️' };
+  if (code <= 99) return { desc: 'Burza', icon: '⛈️' };
+  return { desc: 'Zmienne', icon: '🌡️' };
+}
+
 export default function SearchPage({ initialResults, initialUpdates, locale, defaultLat, defaultLon, defaultRadius }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -150,11 +164,27 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [addressOpen, setAddressOpen] = useState(false);
   const [addressInput, setAddressInput] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [weather, setWeather] = useState<{ temp: number; desc: string; icon: string } | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('theme');
     if (stored === 'light') setDark(false);
   }, []);
+
+  useEffect(() => {
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    if (isNaN(lat) || isNaN(lon)) return;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m&timezone=auto&wind_speed_unit=kmh`)
+      .then(r => r.json())
+      .then(d => {
+        const temp = Math.round(d.current.temperature_2m);
+        const code = d.current.weathercode as number;
+        const { desc, icon } = weatherCodeInfo(code);
+        setWeather({ temp, desc, icon });
+      })
+      .catch(() => {});
+  }, [latitude, longitude]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light-theme', !dark);
@@ -362,6 +392,14 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           </button>
         </div>
       </div>
+
+      {weather && (
+        <div className="weather-bar">
+          <span className="weather-icon">{weather.icon}</span>
+          <span className="weather-temp">{weather.temp}°C</span>
+          <span className="weather-desc">{weather.desc}</span>
+        </div>
+      )}
 
       {error && <div className="error-bar">{error} <button onClick={() => setError(null)}>✕</button></div>}
 
