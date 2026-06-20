@@ -521,17 +521,6 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             </div>
           </div>
 
-          {addressOpen && (
-            <form className="search-bar" onSubmit={handleGeocodeAddress}>
-              <input autoFocus type="text" value={addressInput} onChange={e => setAddressInput(e.target.value)}
-                placeholder="Wpisz adres, ulicę lub miasto…" className="search-input" />
-              <button type="submit" className="search-submit" disabled={locating}>{locating ? '…' : 'Szukaj'}</button>
-              <button type="button" className="search-submit" disabled={locating} onClick={() => { handleGeolocate(); setAddressOpen(false); }}>
-                <IconPin />
-              </button>
-              <button type="button" className="search-submit" style={{ background:'var(--bg3)', color:'var(--text2)' }} onClick={() => setAddressOpen(false)}>✕</button>
-            </form>
-          )}
         </nav>
 
         {error && <div className="error-bar">{error} <button onClick={() => setError(null)}>✕</button></div>}
