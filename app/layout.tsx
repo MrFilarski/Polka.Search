@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   title: "Polka.Search",
   description: "Odkryj lokalne miejsca, eventy i zniżki w swojej okolicy.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

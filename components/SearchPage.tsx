@@ -7,7 +7,7 @@ import type { Locale } from '@/lib/i18n';
 import { getTranslations } from '@/lib/i18n';
 import PolkaDotBackground from './PolkaDotBackground';
 import {
-  IconSun, IconMoon, IconPin, IconEdit, IconShare, IconThumbUp, IconComment,
+  IconSun, IconMoon, IconPin, IconShare, IconThumbUp, IconComment,
   IconCalendar, IconStore, IconNews, IconDiscount, IconChevronLeft, IconChevronRight, IconSliders,
   IconWeatherSun, IconWeatherCloud, IconWeatherPartly, IconWeatherRain,
   IconWeatherSnow, IconWeatherThunder, IconWeatherFog,
@@ -17,6 +17,7 @@ import { getPlaceImage } from '@/lib/images';
 import AiSearchBar from './AiSearchBar';
 import NewsTicker from './NewsTicker';
 import DetailModal, { getRating, getOpenStatus } from './DetailModal';
+import FeedbackModal from './FeedbackModal';
 
 interface Props {
   initialResults: SearchResult[];
@@ -221,6 +222,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [visitors, setVisitors] = useState(0);
   const [now, setNow] = useState(new Date());
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [likes, setLikes] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -339,9 +341,13 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const handleGeocodeAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addressInput.trim()) return;
+    geocodeAndSearch(addressInput);
+  };
+
+  const geocodeAndSearch = async (query: string) => {
     setLocating(true); setError(null);
     try {
-      const params = new URLSearchParams({ q: addressInput, format: 'json', limit: '1', 'accept-language': 'pl' });
+      const params = new URLSearchParams({ q: query, format: 'json', limit: '1', 'accept-language': 'pl' });
       const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, { headers: { 'User-Agent': 'PolkaSearch/1.0' } });
       const data = await res.json();
       if (!data[0]) throw new Error();
@@ -349,7 +355,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
       const lon = String(parseFloat(data[0].lon).toFixed(6));
       setLatitude(lat); setLongitude(lon);
       setLocationLabel(data[0].display_name.split(',').slice(0, 3).join(',').trim());
-      setAddressOpen(false); setAddressInput('');
+      setAddressInput('');
       doSearch(visibleCats[activeTab]?.filter ?? '', lat, lon, radius);
     } catch { setError('Nie znaleziono podanego adresu.'); }
     finally { setLocating(false); }
@@ -404,7 +410,13 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
 
           {/* ── Wiersz 1: logo · pogoda · lokalizacja · GPS · theme ── */}
           <div className="nav-row1">
-            <a className="nav-logo" href="/">Polka<span>.Search</span></a>
+            <a className="nav-logo" href="/">
+              <svg className="nav-logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+                <rect width="32" height="32" rx="7" fill="#0f0f0f"/>
+                <text x="16" y="22" textAnchor="middle" fontFamily="'Inter','Segoe UI',Arial,sans-serif" fontSize="15" fontWeight="700" letterSpacing="-1" fill="#ffffff"><tspan>P</tspan><tspan fill="#e8003d">.</tspan><tspan>S</tspan></text>
+              </svg>
+              <span className="nav-logo-text">Polka<span>.Search</span></span>
+            </a>
 
             <div className="nav-location-group">
               {weather && (
@@ -449,14 +461,8 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
                   )}
                 </div>
               )}
-              <span className="locate-mini-btn" style={{ cursor: 'default' }}>
-                <IconPin /> {locationLabel}
-              </span>
-              <button className="locate-mini-btn" onClick={() => setAddressOpen(a => !a)}>
-                <IconEdit /> <span className="locate-label">Zmień adres</span>
-              </button>
-              <button className="locate-mini-btn" onClick={handleGeolocate} disabled={locating}>
-                <IconPin /> <span className="locate-label">{locating ? 'Lokalizuję…' : 'GPS'}</span>
+              <button className="locate-mini-btn" onClick={handleGeolocate} disabled={locating} title="Użyj GPS">
+                <IconPin /> <span className="locate-label">{locating ? 'Lokalizuję…' : locationLabel}</span>
               </button>
             </div>
 
@@ -525,20 +531,12 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             </div>
           </div>
 
-          {addressOpen && (
-            <form className="search-bar" onSubmit={handleGeocodeAddress}>
-              <input autoFocus type="text" value={addressInput} onChange={e => setAddressInput(e.target.value)}
-                placeholder="Wpisz adres, ulicę lub miasto…" className="search-input" />
-              <button type="submit" className="search-submit" disabled={locating}>{locating ? '…' : 'Szukaj'}</button>
-              <button type="button" className="search-submit" style={{ background:'var(--bg3)', color:'var(--text2)' }} onClick={() => setAddressOpen(false)}>✕</button>
-            </form>
-          )}
         </nav>
 
         {error && <div className="error-bar">{error} <button onClick={() => setError(null)}>✕</button></div>}
 
         <AiSearchBar latitude={latitude} longitude={longitude} locationLabel={locationLabel}
-          onSearch={q => doSearch(q, latitude, longitude, radius)} />
+          onSearch={geocodeAndSearch} />
 
         {/* filter bar */}
         <div className="filter-bar">
@@ -626,9 +624,14 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             <span className="footer-item footer-attr">
               Dane: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · <a href="https://wikipedia.org" target="_blank" rel="noopener">Wikipedia</a>
             </span>
+            <span className="footer-sep">·</span>
+            <button className="footer-feedback-btn" onClick={() => setFeedbackOpen(true)}>
+              Opinie
+            </button>
           </div>
         </footer>
       </div>
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
     </>
   );
 }
