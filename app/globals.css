@@ -154,6 +154,8 @@ a { color: inherit; text-decoration: none; }
   flex-shrink: 0;
 }
 .nav-logo span { color: var(--accent); }
+.nav-logo-icon { display: none; }
+.nav-logo-text { display: inline; }
 
 .nav-location-group {
   display: flex;
@@ -1265,7 +1267,8 @@ a { color: inherit; text-decoration: none; }
   /* Nav row 1: compact */
   .nav-row1 { padding: 0 10px; gap: 6px; flex-wrap: nowrap; }
   .nav-logo { font-size: 1rem; flex-shrink: 0; }
-  .nav-logo span { display: none; } /* hide ".Search" */
+  .nav-logo-text { display: none; }
+  .nav-logo-icon { display: block; }
   .nav-location-group { gap: 4px; flex: 1; min-width: 0; justify-content: flex-end; overflow: hidden; }
 
   /* weather pill: icon+temp only */

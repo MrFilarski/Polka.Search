@@ -406,7 +406,13 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
 
           {/* ── Wiersz 1: logo · pogoda · lokalizacja · GPS · theme ── */}
           <div className="nav-row1">
-            <a className="nav-logo" href="/">Polka<span>.Search</span></a>
+            <a className="nav-logo" href="/">
+              <svg className="nav-logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+                <rect width="32" height="32" rx="7" fill="#0f0f0f"/>
+                <text x="16" y="22" textAnchor="middle" fontFamily="'Inter','Segoe UI',Arial,sans-serif" fontSize="15" fontWeight="700" letterSpacing="-1" fill="#ffffff"><tspan>P</tspan><tspan fill="#e8003d">.</tspan><tspan>S</tspan></text>
+              </svg>
+              <span className="nav-logo-text">Polka<span>.Search</span></span>
+            </a>
 
             <div className="nav-location-group">
               {weather && (
