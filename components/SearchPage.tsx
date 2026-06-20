@@ -321,7 +321,6 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           </div>
 
           <div className="nav-right">
-            <button className="icon-btn" onClick={() => setSearchOpen(s => !s)} title="Szukaj"><IconSearch /></button>
             <button className="icon-btn" onClick={() => setDark(d => !d)} title="Motyw">{dark ? <IconSun /> : <IconMoon />}</button>
             {(['en', 'pl', 'uk'] as const).map(lang => (
               <button key={lang} className="lang-pill" onClick={() => switchLang(lang)}>{lang.toUpperCase()}</button>
@@ -382,6 +381,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           <IconPin />&nbsp;<strong>{locationLabel}</strong>
           &nbsp;·&nbsp; promień: {radius} km
           &nbsp;·&nbsp; {loading ? 'ładowanie…' : `${results.length} wyników`}
+          {weather && <>&nbsp;·&nbsp;<span className="weather-inline">{weather.icon} {weather.temp}°C {weather.desc}</span></>}
         </span>
         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
           <button className="locate-mini-btn" onClick={() => setAddressOpen(a => !a)}>
@@ -392,14 +392,6 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
           </button>
         </div>
       </div>
-
-      {weather && (
-        <div className="weather-bar">
-          <span className="weather-icon">{weather.icon}</span>
-          <span className="weather-temp">{weather.temp}°C</span>
-          <span className="weather-desc">{weather.desc}</span>
-        </div>
-      )}
 
       {error && <div className="error-bar">{error} <button onClick={() => setError(null)}>✕</button></div>}
 
