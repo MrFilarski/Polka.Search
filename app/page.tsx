@@ -19,7 +19,7 @@ async function enrichWithPhotos(results: SearchResult[], lat: number, lon: numbe
   }));
 }
 
-// Cybernetyki 7D, Warszawa — Mokotów / Służewiec Południowy
+// Domyślna lokalizacja — Mokotów, Warszawa
 const DEFAULT_LAT = 52.1741;
 const DEFAULT_LON = 20.9962;
 const DEFAULT_RADIUS = 0.8;

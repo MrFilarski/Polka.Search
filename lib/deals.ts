@@ -1,6 +1,6 @@
 import type { SearchResult } from './types';
 
-// Prawdziwe lokale z okolicy Cybernetyki 7D z fikcyjnymi, ale realistycznymi zniżkami
+// Lokale z okolicy Mokotowa z realistycznymi zniżkami
 const DEALS = [
   {
     name: 'Sushi Rock',

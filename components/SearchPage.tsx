@@ -140,7 +140,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [latitude, setLatitude] = useState(String(defaultLat));
   const [longitude, setLongitude] = useState(String(defaultLon));
   const [radius, setRadius] = useState(String(defaultRadius));
-  const [locationLabel, setLocationLabel] = useState('Cybernetyki 7D, Mokotów, Warszawa');
+  const [locationLabel, setLocationLabel] = useState('Mokotów, Warszawa');
   const [results, setResults] = useState<SearchResult[]>(initialResults);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);

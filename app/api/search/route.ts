@@ -19,7 +19,7 @@ async function enrichWithPhotos(results: SearchResult[], lat: number, lon: numbe
   }));
 }
 
-const DEFAULT_LAT = 52.1741; // Cybernetyki 7D, Warszawa
+const DEFAULT_LAT = 52.1741; // Mokotów, Warszawa
 const DEFAULT_LON = 20.9962;
 const DEFAULT_RADIUS = 0.8;
 
