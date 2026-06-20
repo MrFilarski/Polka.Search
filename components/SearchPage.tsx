@@ -7,7 +7,7 @@ import type { Locale } from '@/lib/i18n';
 import { getTranslations } from '@/lib/i18n';
 import PolkaDotBackground from './PolkaDotBackground';
 import {
-  IconSun, IconMoon, IconPin, IconEdit, IconShare, IconThumbUp, IconComment,
+  IconSun, IconMoon, IconPin, IconShare, IconThumbUp, IconComment,
   IconCalendar, IconStore, IconNews, IconDiscount, IconChevronLeft, IconChevronRight, IconSliders,
   IconWeatherSun, IconWeatherCloud, IconWeatherPartly, IconWeatherRain,
   IconWeatherSnow, IconWeatherThunder, IconWeatherFog,
@@ -454,10 +454,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
               <span className="locate-mini-btn" style={{ cursor: 'default' }}>
                 <IconPin /> {locationLabel}
               </span>
-              <button className="locate-mini-btn" onClick={() => setAddressOpen(a => !a)}>
-                <IconEdit /> <span className="locate-label">Zmień adres</span>
-              </button>
-              <button className="locate-mini-btn" onClick={handleGeolocate} disabled={locating}>
+              <button className="locate-mini-btn" onClick={() => setAddressOpen(a => !a)} disabled={locating}>
                 <IconPin /> <span className="locate-label">{locating ? 'Lokalizuję…' : 'GPS'}</span>
               </button>
             </div>
@@ -532,6 +529,9 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
               <input autoFocus type="text" value={addressInput} onChange={e => setAddressInput(e.target.value)}
                 placeholder="Wpisz adres, ulicę lub miasto…" className="search-input" />
               <button type="submit" className="search-submit" disabled={locating}>{locating ? '…' : 'Szukaj'}</button>
+              <button type="button" className="search-submit" disabled={locating} onClick={() => { handleGeolocate(); setAddressOpen(false); }}>
+                <IconPin />
+              </button>
               <button type="button" className="search-submit" style={{ background:'var(--bg3)', color:'var(--text2)' }} onClick={() => setAddressOpen(false)}>✕</button>
             </form>
           )}
