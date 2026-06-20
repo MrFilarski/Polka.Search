@@ -341,9 +341,13 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const handleGeocodeAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addressInput.trim()) return;
+    geocodeAndSearch(addressInput);
+  };
+
+  const geocodeAndSearch = async (query: string) => {
     setLocating(true); setError(null);
     try {
-      const params = new URLSearchParams({ q: addressInput, format: 'json', limit: '1', 'accept-language': 'pl' });
+      const params = new URLSearchParams({ q: query, format: 'json', limit: '1', 'accept-language': 'pl' });
       const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, { headers: { 'User-Agent': 'PolkaSearch/1.0' } });
       const data = await res.json();
       if (!data[0]) throw new Error();
@@ -351,7 +355,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
       const lon = String(parseFloat(data[0].lon).toFixed(6));
       setLatitude(lat); setLongitude(lon);
       setLocationLabel(data[0].display_name.split(',').slice(0, 3).join(',').trim());
-      setAddressOpen(false); setAddressInput('');
+      setAddressInput('');
       doSearch(visibleCats[activeTab]?.filter ?? '', lat, lon, radius);
     } catch { setError('Nie znaleziono podanego adresu.'); }
     finally { setLocating(false); }
@@ -532,7 +536,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
         {error && <div className="error-bar">{error} <button onClick={() => setError(null)}>✕</button></div>}
 
         <AiSearchBar latitude={latitude} longitude={longitude} locationLabel={locationLabel}
-          onSearch={q => doSearch(q, latitude, longitude, radius)} />
+          onSearch={geocodeAndSearch} />
 
         {/* filter bar */}
         <div className="filter-bar">
