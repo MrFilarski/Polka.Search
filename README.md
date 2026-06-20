@@ -1,5 +1,7 @@
 # Polka.Search
 
+![Polka.Search preview](public/screenshot.png)
+
 Lokalny agregator miejsc, wydarzeń i zniżek. Wpisz dowolny adres lub użyj GPS — aplikacja pokazuje co jest w pobliżu: restauracje, kawiarnie, bary, muzea, eventy i aktualne promocje.
 
 ## Stack
