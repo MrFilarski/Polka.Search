@@ -451,7 +451,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
                   )}
                 </div>
               )}
-              <button className="locate-mini-btn" onClick={() => setAddressOpen(a => !a)} title="Zmień lokalizację">
+              <button className="locate-mini-btn" onClick={handleGeolocate} disabled={locating} title="Użyj GPS">
                 <IconPin /> <span className="locate-label">{locating ? 'Lokalizuję…' : locationLabel}</span>
               </button>
             </div>
