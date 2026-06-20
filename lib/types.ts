@@ -34,6 +34,9 @@ export interface SearchResult {
   eventDate?: string;
   tags: string[];
   image?: string;
+  lat?: number;
+  lon?: number;
+  phone?: string;
 }
 
 export interface BusinessUpdate {

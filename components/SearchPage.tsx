@@ -16,6 +16,7 @@ import {
 import { getPlaceImage } from '@/lib/images';
 import AiSearchBar from './AiSearchBar';
 import NewsTicker from './NewsTicker';
+import DetailModal, { getRating, getOpenStatus } from './DetailModal';
 
 interface Props {
   initialResults: SearchResult[];
@@ -84,44 +85,61 @@ function timeAgo(iso: string) {
   return h < 24 ? `${h} godz. temu` : `${Math.floor(h / 24)} dni temu`;
 }
 
-function HeroCard({ result, isDeal }: { result: SearchResult; isDeal?: boolean }) {
+function HeroCard({ result, isDeal, onClick, liked, onLike }: { result: SearchResult; isDeal?: boolean; onClick: () => void; liked: boolean; onLike: () => void }) {
+  const { rating, count } = getRating(result.name);
+  const { isOpen } = getOpenStatus(result.name, result.category);
   return (
-    <div className={`hero-card${isDeal ? ' deal-card' : ''}`}>
+    <div className={`hero-card${isDeal ? ' deal-card' : ''}`} onClick={onClick} style={{ cursor: 'pointer' }}>
       <div className="hero-img-wrap">
         <img src={cardImg(result)} alt={result.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
         <div className="hero-gradient" />
+        <span className={`card-open-badge ${isOpen ? 'open' : 'closed'}`}>{isOpen ? 'Otwarte' : 'Zamknięte'}</span>
       </div>
       <div className="hero-body">
         <span className="cat-badge">{result.type === 'Event' ? <><IconCalendar /> Wydarzenie</> : <><IconStore /> Miejsce</>}</span>
         <h2 className="hero-title">{result.name}</h2>
+        <div className="card-rating">
+          <span className="rating-stars">{'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}</span>
+          <span className="rating-num">{rating.toFixed(1)}</span>
+          <span className="rating-count">({count})</span>
+        </div>
         <p className="hero-desc">{result.description}</p>
         <div className="card-meta">
           <span style={{display:'flex',alignItems:'center',gap:4}}><IconPin /> {result.address}</span>
           <span>· {result.distance.toFixed(2)} km</span>
-          {result.eventDate && <span>· {new Date(result.eventDate).toLocaleDateString('pl-PL')}</span>}
         </div>
-        <div className="card-actions">
-          <button className="action-btn"><IconThumbUp /> Lubię</button>
+        <div className="card-actions" onClick={e => e.stopPropagation()}>
+          <button className={`action-btn${liked ? ' liked' : ''}`} onClick={onLike}><IconThumbUp /> {liked ? 'Lubisz' : 'Lubię'}</button>
           <button className="action-btn"><IconComment /> Komentuj</button>
-          <button className="action-btn"><IconShare /> Udostępnij</button>
+          <button className="action-btn" onClick={async () => {
+            if (navigator.share) await navigator.share({ title: result.name, url: window.location.href }).catch(() => {});
+            else await navigator.clipboard.writeText(`${result.name} – ${result.address}`).catch(() => {});
+          }}><IconShare /> Udostępnij</button>
         </div>
       </div>
     </div>
   );
 }
 
-function GridCard({ result, isDeal }: { result: SearchResult; isDeal?: boolean }) {
+function GridCard({ result, isDeal, onClick, liked, onLike }: { result: SearchResult; isDeal?: boolean; onClick: () => void; liked: boolean; onLike: () => void }) {
+  const { rating } = getRating(result.name);
+  const { isOpen } = getOpenStatus(result.name, result.category);
   return (
-    <div className={`grid-card${isDeal ? ' deal-card' : ''}`}>
+    <div className={`grid-card${isDeal ? ' deal-card' : ''}`} onClick={onClick} style={{ cursor: 'pointer' }}>
       <div className="grid-img-wrap">
         <img src={cardImg(result)} alt={result.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+        <span className={`card-open-badge ${isOpen ? 'open' : 'closed'}`}>{isOpen ? 'Otwarte' : 'Zamknięte'}</span>
       </div>
       <div className="grid-body">
         <span className="source-label">{result.category} · {result.distance.toFixed(2)} km</span>
         <h3 className="grid-title">{result.name}</h3>
+        <div className="card-rating small">
+          <span className="rating-stars small">{'★'.repeat(Math.round(rating))}</span>
+          <span className="rating-num">{rating.toFixed(1)}</span>
+        </div>
         <p className="grid-desc">{result.description}</p>
-        <div className="card-actions small">
-          <button className="action-btn"><IconThumbUp /></button>
+        <div className="card-actions small" onClick={e => e.stopPropagation()}>
+          <button className={`action-btn${liked ? ' liked' : ''}`} onClick={onLike}><IconThumbUp /></button>
           <button className="action-btn"><IconComment /></button>
         </div>
       </div>
@@ -129,13 +147,18 @@ function GridCard({ result, isDeal }: { result: SearchResult; isDeal?: boolean }
   );
 }
 
-function SideListCard({ result, rank }: { result: SearchResult; rank: number }) {
+function SideListCard({ result, rank, onClick }: { result: SearchResult; rank: number; onClick: () => void }) {
+  const { rating } = getRating(result.name);
+  const { isOpen } = getOpenStatus(result.name, result.category);
   return (
-    <div className="side-item">
+    <div className="side-item" onClick={onClick} style={{ cursor: 'pointer' }}>
       <span className="side-rank">{rank}</span>
       <div className="side-body">
         <h4 className="side-title">{result.name}</h4>
-        <span className="side-meta">{result.category} · {result.distance.toFixed(2)} km</span>
+        <span className="side-meta">
+          <span className={`side-open-dot ${isOpen ? 'open' : 'closed'}`} />
+          {result.distance.toFixed(2)} km · ★ {rating.toFixed(1)}
+        </span>
       </div>
       <div className="side-thumb">
         <img src={thumbImg(result)} alt={result.name} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
@@ -197,6 +220,11 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [tabsOverflow, setTabsOverflow] = useState(false);
   const [visitors, setVisitors] = useState(0);
   const [now, setNow] = useState(new Date());
+  const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [likes, setLikes] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(12);
 
   const visibleCats = ALL_CATEGORIES.filter(c => enabledCats.has(c.label));
 
@@ -215,6 +243,8 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
     if (th === 'light') setDark(false);
     const cats = localStorage.getItem('enabledCats');
     if (cats) try { setEnabledCats(new Set(JSON.parse(cats))); } catch { /* ignore */ }
+    const savedLikes = localStorage.getItem('likes');
+    if (savedLikes) try { setLikes(new Set(JSON.parse(savedLikes))); } catch { /* ignore */ }
 
     // visitors counter persisted in localStorage
     const base = parseInt(localStorage.getItem('visitorBase') ?? '0', 10) || Math.floor(8400 + Math.random() * 1200);
@@ -341,11 +371,30 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
     router.push(`/?${params}`);
   };
 
+  const handleLike = (name: string) => {
+    setLikes(prev => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      localStorage.setItem('likes', JSON.stringify([...next]));
+      return next;
+    });
+  };
+
   const isDeals = visibleCats[activeTab]?.isDeals ?? false;
-  const hero = results[0];
-  const gridCards = results.slice(1, 4);
-  const sideList = results.slice(0, 5);
-  const bottomCards = results.slice(4);
+
+  const sortedResults = [...results].sort((a, b) => {
+    if (sortBy === 'rating') return getRating(b.name).rating - getRating(a.name).rating;
+    return a.distance - b.distance;
+  });
+  const filteredResults = filterOpen
+    ? sortedResults.filter(r => getOpenStatus(r.name, r.category).isOpen)
+    : sortedResults;
+  const pagedResults = filteredResults.slice(0, pageSize);
+
+  const hero = pagedResults[0];
+  const gridCards = pagedResults.slice(1, 4);
+  const sideList = pagedResults.slice(0, 5);
+  const bottomCards = pagedResults.slice(4);
 
   return (
     <>
@@ -491,22 +540,50 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
         <AiSearchBar latitude={latitude} longitude={longitude} locationLabel={locationLabel}
           onSearch={q => doSearch(q, latitude, longitude, radius)} />
 
+        {/* filter bar */}
+        <div className="filter-bar">
+          <div className="filter-group">
+            <button className={`filter-pill${sortBy === 'distance' ? ' active' : ''}`} onClick={() => setSortBy('distance')}>Odległość</button>
+            <button className={`filter-pill${sortBy === 'rating' ? ' active' : ''}`} onClick={() => setSortBy('rating')}>Ocena</button>
+          </div>
+          <div className="filter-sep" />
+          <button className={`filter-pill toggle${filterOpen ? ' active' : ''}`} onClick={() => setFilterOpen(o => !o)}>
+            <span className={`open-dot-mini ${filterOpen ? 'open' : ''}`} />
+            Otwarte teraz
+          </button>
+          {filteredResults.length !== results.length && (
+            <span className="filter-count">{filteredResults.length} z {results.length}</span>
+          )}
+        </div>
+
         <main className="portal-main">
           {loading ? (
             <div className="loading-state"><div className="spinner" /><p>Pobieranie danych z okolicy…</p></div>
-          ) : results.length === 0 ? (
-            <div className="empty-state"><p>Brak wyników. Spróbuj zwiększyć promień lub zmień lokalizację.</p></div>
+          ) : filteredResults.length === 0 ? (
+            <div className="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <h3>Brak wyników</h3>
+              <p>{filterOpen ? 'Spróbuj wyłączyć filtr "Otwarte teraz".' : 'Spróbuj zwiększyć promień lub zmień lokalizację.'}</p>
+              {filterOpen && <button className="filter-pill active" onClick={() => setFilterOpen(false)}>Pokaż wszystkie</button>}
+            </div>
           ) : (
             <>
               <div className="primary-row">
-                <div className="primary-left">{hero && <HeroCard result={hero} isDeal={isDeals} />}</div>
+                <div className="primary-left">{hero && <HeroCard result={hero} isDeal={isDeals} onClick={() => setSelectedResult(hero)} liked={likes.has(hero.name)} onLike={() => handleLike(hero.name)} />}</div>
                 <aside className="primary-side">
                   <h3 className="side-heading">Najlepsze w pobliżu</h3>
-                  {sideList.map((r, i) => <SideListCard key={i} result={r} rank={i + 1} />)}
+                  {sideList.map((r, i) => <SideListCard key={i} result={r} rank={i + 1} onClick={() => setSelectedResult(r)} />)}
                 </aside>
               </div>
-              {gridCards.length > 0 && <div className="grid-row">{gridCards.map((r, i) => <GridCard key={i} result={r} isDeal={isDeals} />)}</div>}
-              {bottomCards.length > 0 && <div className="grid-row">{bottomCards.map((r, i) => <GridCard key={i} result={r} isDeal={isDeals} />)}</div>}
+              {gridCards.length > 0 && <div className="grid-row">{gridCards.map((r, i) => <GridCard key={i} result={r} isDeal={isDeals} onClick={() => setSelectedResult(r)} liked={likes.has(r.name)} onLike={() => handleLike(r.name)} />)}</div>}
+              {bottomCards.length > 0 && <div className="grid-row">{bottomCards.map((r, i) => <GridCard key={i} result={r} isDeal={isDeals} onClick={() => setSelectedResult(r)} liked={likes.has(r.name)} onLike={() => handleLike(r.name)} />)}</div>}
+              {pagedResults.length < filteredResults.length && (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <button className="load-more-btn" onClick={() => setPageSize(p => p + 12)}>
+                    Załaduj więcej ({filteredResults.length - pagedResults.length} pozostałych)
+                  </button>
+                </div>
+              )}
             </>
           )}
           <section className="updates-section">
@@ -514,6 +591,15 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             <div className="updates-grid">{initialUpdates.map((u, i) => <UpdateCard key={i} update={u} />)}</div>
           </section>
         </main>
+
+        {selectedResult && (
+          <DetailModal
+            result={selectedResult}
+            onClose={() => setSelectedResult(null)}
+            onLike={handleLike}
+            liked={likes.has(selectedResult.name)}
+          />
+        )}
 
         <footer className="site-footer">
           <div className="footer-inner">

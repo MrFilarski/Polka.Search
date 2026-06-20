@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -11,7 +11,20 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Polka.Search",
-  description: "Find local businesses and events near you.",
+  description: "Odkryj lokalne miejsca, eventy i zniżki w swojej okolicy.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Polka.Search",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f0f0f",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

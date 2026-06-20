@@ -29,7 +29,7 @@ export function search(criteria: SearchCriteria): SearchResult[] {
     if (!matches) continue;
     const distance = haversineKm(latitude, longitude, b.location.latitude, b.location.longitude);
     if (distance <= radius) {
-      results.push({ type: 'Business', name: b.name, description: b.description, category: b.category, address: b.address, distance, tags: b.tags, image: b.image });
+      results.push({ type: 'Business', name: b.name, description: b.description, category: b.category, address: b.address, distance, tags: b.tags, image: b.image, lat: b.location.latitude, lon: b.location.longitude });
     }
   }
 
@@ -44,7 +44,7 @@ export function search(criteria: SearchCriteria): SearchResult[] {
     if (!matches) continue;
     const distance = haversineKm(latitude, longitude, e.location.latitude, e.location.longitude);
     if (distance <= radius) {
-      results.push({ type: 'Event', name: e.name, description: e.description, category: e.category, address: e.address, distance, eventDate: e.startDateTime, tags: e.tags, image: e.image });
+      results.push({ type: 'Event', name: e.name, description: e.description, category: e.category, address: e.address, distance, eventDate: e.startDateTime, tags: e.tags, image: e.image, lat: e.location.latitude, lon: e.location.longitude });
     }
   }
 
