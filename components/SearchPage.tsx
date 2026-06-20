@@ -453,10 +453,10 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
                 <IconPin /> {locationLabel}
               </span>
               <button className="locate-mini-btn" onClick={() => setAddressOpen(a => !a)}>
-                <IconEdit /> Zmień adres
+                <IconEdit /> <span className="locate-label">Zmień adres</span>
               </button>
               <button className="locate-mini-btn" onClick={handleGeolocate} disabled={locating}>
-                <IconPin />{locating ? ' Lokalizuję…' : ' GPS'}
+                <IconPin /> <span className="locate-label">{locating ? 'Lokalizuję…' : 'GPS'}</span>
               </button>
             </div>
 
@@ -501,7 +501,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
 
             <div className="personalize-wrap">
               <button className="personalize-btn" onClick={() => setPersonalizujOpen(o => !o)}>
-                <IconSliders /> Personalizuj
+                <IconSliders /> <span className="personalize-label">Personalizuj</span>
               </button>
               {personalizujOpen && (
                 <div className="personalize-panel">
@@ -572,7 +572,9 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
                 <div className="primary-left">{hero && <HeroCard result={hero} isDeal={isDeals} onClick={() => setSelectedResult(hero)} liked={likes.has(hero.name)} onLike={() => handleLike(hero.name)} />}</div>
                 <aside className="primary-side">
                   <h3 className="side-heading">Najlepsze w pobliżu</h3>
-                  {sideList.map((r, i) => <SideListCard key={i} result={r} rank={i + 1} onClick={() => setSelectedResult(r)} />)}
+                  <div className="side-list-wrap">
+                    {sideList.map((r, i) => <SideListCard key={i} result={r} rank={i + 1} onClick={() => setSelectedResult(r)} />)}
+                  </div>
                 </aside>
               </div>
               {gridCards.length > 0 && <div className="grid-row">{gridCards.map((r, i) => <GridCard key={i} result={r} isDeal={isDeals} onClick={() => setSelectedResult(r)} liked={likes.has(r.name)} onLike={() => handleLike(r.name)} />)}</div>}
