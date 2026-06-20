@@ -42,7 +42,7 @@
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Inter, Arial, sans-serif;
+  font-family: var(--font-inter), 'Inter', 'Segoe UI', Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
@@ -64,7 +64,6 @@ a { color: inherit; text-decoration: none; }
 /* ── Light theme: frosted glass bez backdrop-filter ───────── */
 .light-theme .top-nav,
 .light-theme .location-bar,
-.light-theme .weather-bar,
 .light-theme .search-bar,
 .light-theme .hero-card,
 .light-theme .grid-card,
@@ -293,21 +292,20 @@ a { color: inherit; text-decoration: none; }
   padding: 7px 20px;
 }
 
-.weather-bar {
-  display: flex;
+.weather-inline {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 20px;
+  gap: 5px;
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid var(--glass-border);
-  font-size: 0.82rem;
-  color: var(--text2);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.weather-icon { font-size: 1rem; line-height: 1; }
-.weather-temp { font-weight: 600; color: var(--text); }
-.weather-desc { color: var(--text2); }
 
 .location-text {
   font-size: 0.78rem;
