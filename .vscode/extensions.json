@@ -1,8 +1,0 @@
-{
-  "recommendations": [
-    "vscjava.vscode-java-pack",
-    "redhat.vscode-yaml",
-    "ms-vscode.cpptools",
-    "esbenp.prettier-vscode"
-  ]
-}
