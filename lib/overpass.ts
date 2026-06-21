@@ -55,22 +55,25 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function buildQuery(lat: number, lon: number, radiusM: number, filter: string): string {
+  const a = `(around:${radiusM},${lat},${lon})`;
+  const base = `[out:json][timeout:25];\n(\n`;
+  const foot = `);\nout center tags 80;`;
+
+  if (filter === 'jedzenie') return `${base}  node["name"]["amenity"~"restaurant|cafe|bar|pub|fast_food|food_court|ice_cream|bakery|confectionery"]${a};\n  way["name"]["amenity"~"restaurant|cafe|bar|pub|fast_food"]${a};\n${foot}`;
+  if (filter === 'bary')    return `${base}  node["name"]["amenity"~"bar|pub|nightclub|cafe"]${a};\n  way["name"]["amenity"~"bar|pub|nightclub"]${a};\n${foot}`;
+  if (filter === 'fitness') return `${base}  node["name"]["amenity"~"gym|fitness_centre|sports_centre"]${a};\n  node["name"]["leisure"~"fitness_centre|sports_centre|swimming_pool"]${a};\n${foot}`;
+  if (filter === 'kultura') return `${base}  node["name"]["amenity"~"cinema|theatre|arts_centre|library|museum"]${a};\n  node["name"]["tourism"~"museum|gallery|attraction|viewpoint"]${a};\n${foot}`;
+  if (filter === 'sklepy')  return `${base}  node["name"]["shop"]${a};\n  way["name"]["shop"]${a};\n${foot}`;
+
+  return `${base}  node["name"]["amenity"~"restaurant|cafe|bar|pub|fast_food|bakery|gym|cinema|theatre|pharmacy|hotel|library|nightclub|museum|dentist|hairdresser|beauty|fitness_centre|sports_centre"]${a};\n  node["name"]["shop"~"supermarket|convenience|clothes|electronics|books|sports|bakery|florist|hairdresser|beauty|optician|bicycle|confectionery"]${a};\n  node["name"]["tourism"~"museum|gallery|attraction|hotel|hostel|viewpoint"]${a};\n  way["name"]["amenity"~"restaurant|cafe|bar|pub|cinema|theatre|museum"]${a};\n${foot}`;
+}
+
 export async function fetchNearbyPlaces(
   lat: number, lon: number, radiusKm: number, textFilter: string
 ): Promise<SearchResult[]> {
   const radiusM = Math.min(radiusKm * 1000, 5000);
-
-  const query = `
-[out:json][timeout:20];
-(
-  node["name"]["amenity"](around:${radiusM},${lat},${lon});
-  node["name"]["shop"](around:${radiusM},${lat},${lon});
-  node["name"]["leisure"](around:${radiusM},${lat},${lon});
-  way["name"]["amenity"](around:${radiusM},${lat},${lon});
-  way["name"]["shop"](around:${radiusM},${lat},${lon});
-);
-out center tags 60;
-  `.trim();
+  const query = buildQuery(lat, lon, radiusM, textFilter);
 
   const res = await fetch(OVERPASS_URL, {
     method: 'POST',
@@ -82,9 +85,9 @@ out center tags 60;
   if (!res.ok) throw new Error(`Overpass error: ${res.status}`);
   const data = await res.json();
 
-  const filter = textFilter.toLowerCase();
-
+  const seen = new Set<string>();
   const results: SearchResult[] = [];
+
   for (const el of data.elements ?? []) {
     const tags: Record<string, string> = el.tags ?? {};
     const name: string = tags.name;
@@ -94,28 +97,29 @@ out center tags 60;
     const elLon: number = el.lon ?? el.center?.lon;
     if (!elLat || !elLon) continue;
 
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const distance = haversine(lat, lon, elLat, elLon);
+    if (distance > radiusKm * 1.05) continue;
+
     const category = getCategory(tags);
-    const description = tags['description'] || tags['brand'] || tags['operator'] || '';
     const address = buildAddress(tags);
     const elTags = getTags(tags);
-    const distance = haversine(lat, lon, elLat, elLon);
-
-    if (filter) {
-      const searchable = [name, category, description, ...elTags].join(' ').toLowerCase();
-      if (!searchable.includes(filter)) continue;
-    }
-
-    if (distance > radiusKm) continue;
 
     results.push({
       type: 'Business',
       name,
-      description: description || `${category} w pobliżu`,
+      description: tags.cuisine ? `${category} · ${tags.cuisine.split(';')[0].trim()}` : category,
       category,
       address,
       distance,
       tags: elTags,
       image: undefined,
+      lat: elLat,
+      lon: elLon,
+      phone: tags.phone ?? tags['contact:phone'],
     });
   }
 

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import type { Locale } from '@/lib/i18n';
-import { fetchNearbyPlaces } from '@/lib/nominatim';
+import { fetchNearbyPlaces } from '@/lib/overpass';
 import { fetchNearbyWikiPlaces } from '@/lib/wikipedia';
 import { fetchNearbyEvents } from '@/lib/ticketmaster';
 import { fetchPlacePhoto } from '@/lib/google-places';

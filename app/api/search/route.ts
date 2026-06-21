@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchNearbyPlaces } from '@/lib/nominatim';
+import { fetchNearbyPlaces } from '@/lib/overpass';
 import { fetchNearbyWikiPlaces } from '@/lib/wikipedia';
 import { fetchNearbyEvents } from '@/lib/ticketmaster';
 import { fetchNearbyDeals } from '@/lib/deals';
