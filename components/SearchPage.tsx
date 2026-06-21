@@ -222,7 +222,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [personalizujOpen, setPersonalizujOpen] = useState(false);
   const [tabsOverflow, setTabsOverflow] = useState(false);
   const [visitors, setVisitors] = useState(0);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -272,7 +272,8 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
     localStorage.setItem('visitorBase', String(v));
     setVisitors(v);
 
-    // clock
+    // clock — set immediately so footer renders on client only
+    setNow(new Date());
     const tick = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(tick);
   }, []);
@@ -672,9 +673,9 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             </span>
             <span className="footer-sep">·</span>
             <span className="footer-item footer-time">
-              {now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+              {now ? now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : ''}
               &nbsp;
-              {now.toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short' })}
+              {now ? now.toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short' }) : ''}
             </span>
             <span className="footer-sep footer-right-sep">·</span>
             <span className="footer-item footer-attr">
