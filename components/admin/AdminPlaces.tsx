@@ -67,7 +67,7 @@ export default function AdminPlaces() {
                     <td><strong>{p.name}</strong></td>
                     <td><span className="admin-cat-badge">{p.category}</span></td>
                     <td style={{ color: '#888', fontSize: '0.82rem' }}>{p.address}</td>
-                    <td style={{ color: '#10b981', fontVariantNumeric: 'tabular-nums' }}>{p.distance.toFixed(2)} km</td>
+                    <td className="admin-dist">{p.distance.toFixed(2)} km</td>
                     <td>
                       {p.tags?.slice(0, 3).map((t, j) => <span key={j} className="admin-tag">{t}</span>)}
                     </td>
