@@ -18,6 +18,8 @@ import AiSearchBar from './AiSearchBar';
 import NewsTicker from './NewsTicker';
 import DetailModal, { getRating, getOpenStatus } from './DetailModal';
 import FeedbackModal from './FeedbackModal';
+import AuthModal, { type UserProfile } from './AuthModal';
+import UserMenu from './UserMenu';
 
 interface Props {
   initialResults: SearchResult[];
@@ -223,6 +225,8 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
   const [now, setNow] = useState(new Date());
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [likes, setLikes] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'distance' | 'rating'>('distance');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -247,6 +251,20 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
     if (cats) try { setEnabledCats(new Set(JSON.parse(cats))); } catch { /* ignore */ }
     const savedLikes = localStorage.getItem('likes');
     if (savedLikes) try { setLikes(new Set(JSON.parse(savedLikes))); } catch { /* ignore */ }
+
+    // restore logged-in user
+    const email = localStorage.getItem('ps_current_user');
+    if (email) {
+      try {
+        const users = JSON.parse(localStorage.getItem('ps_users') ?? '{}');
+        if (users[email]) {
+          const { pwHash: _, ...profile } = users[email];
+          setCurrentUser(profile);
+          if (profile.enabledCats) setEnabledCats(new Set(profile.enabledCats));
+          if (profile.likes) setLikes(new Set(profile.likes));
+        }
+      } catch { /* ignore */ }
+    }
 
     // visitors counter persisted in localStorage
     const base = parseInt(localStorage.getItem('visitorBase') ?? '0', 10) || Math.floor(8400 + Math.random() * 1200);
@@ -367,6 +385,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
       const next = new Set(prev);
       next.has(label) ? next.delete(label) : next.add(label);
       localStorage.setItem('enabledCats', JSON.stringify([...next]));
+      syncUserField('enabledCats', [...next]);
       return next;
     });
   };
@@ -382,8 +401,36 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
       const next = new Set(prev);
       next.has(name) ? next.delete(name) : next.add(name);
       localStorage.setItem('likes', JSON.stringify([...next]));
+      syncUserField('likes', [...next]);
       return next;
     });
+  };
+
+  const syncUserField = (field: string, value: unknown) => {
+    const email = localStorage.getItem('ps_current_user');
+    if (!email) return;
+    try {
+      const users = JSON.parse(localStorage.getItem('ps_users') ?? '{}');
+      if (users[email]) { users[email][field] = value; localStorage.setItem('ps_users', JSON.stringify(users)); }
+    } catch { /* ignore */ }
+  };
+
+  const handleLogin = (profile: UserProfile) => {
+    setCurrentUser(profile);
+    if (profile.enabledCats) setEnabledCats(new Set(profile.enabledCats));
+    if (profile.likes) setLikes(new Set(profile.likes));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('ps_current_user');
+    setCurrentUser(null);
+  };
+
+  const handleUpdateColor = (color: string) => {
+    if (!currentUser) return;
+    const updated = { ...currentUser, dotColor: color };
+    setCurrentUser(updated);
+    syncUserField('dotColor', color);
   };
 
   const isDeals = visibleCats[activeTab]?.isDeals ?? false;
@@ -467,6 +514,15 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
             </div>
 
             <div className="nav-right">
+              {currentUser ? (
+                <UserMenu profile={currentUser} onLogout={handleLogout} onUpdateColor={handleUpdateColor} />
+              ) : (
+                <button className="icon-btn" onClick={() => setAuthOpen(true)} title="Zaloguj się">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                  </svg>
+                </button>
+              )}
               <button className="icon-btn" onClick={() => setDark(d => !d)} title="Motyw">{dark ? <IconSun /> : <IconMoon />}</button>
             </div>
           </div>
@@ -632,6 +688,7 @@ export default function SearchPage({ initialResults, initialUpdates, locale, def
         </footer>
       </div>
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onLogin={handleLogin} />}
     </>
   );
 }
