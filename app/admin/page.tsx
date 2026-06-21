@@ -1,2 +1,9 @@
-import { redirect } from 'next/navigation';
-export default function AdminRoot() { redirect('/admin/analytics'); }
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function AdminRoot() {
+  const router = useRouter();
+  useEffect(() => { router.replace('/admin/analytics'); }, [router]);
+  return null;
+}
