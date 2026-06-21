@@ -51,6 +51,25 @@ export default function AuthModal({ onClose, onLogin }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const loginDemo = () => {
+    const demo: UserProfile = {
+      name: 'Jan Kowalski',
+      email: 'demo@polka.search',
+      dotColor: '#e8003d',
+      enabledCats: ['Odkryj', 'Jedzenie', 'Bary', 'Kultura'],
+      likes: [],
+      createdAt: '2025-01-01T00:00:00.000Z',
+    };
+    const users = loadUsers();
+    if (!users[demo.email]) {
+      users[demo.email] = { ...demo, pwHash: hashPassword('demo123') };
+      saveUsers(users);
+    }
+    localStorage.setItem('ps_current_user', demo.email);
+    onLogin(demo);
+    onClose();
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); setLoading(true);
@@ -93,6 +112,12 @@ export default function AuthModal({ onClose, onLogin }: Props) {
           <button className={`auth-tab${mode === 'login' ? ' active' : ''}`} onClick={() => { setMode('login'); setError(''); }}>Zaloguj się</button>
           <button className={`auth-tab${mode === 'register' ? ' active' : ''}`} onClick={() => { setMode('register'); setError(''); }}>Zarejestruj się</button>
         </div>
+
+        <button type="button" className="auth-demo-btn" onClick={loginDemo}>
+          Wypróbuj demo — zaloguj się jako Jan Kowalski
+        </button>
+
+        <div className="auth-divider"><span>lub</span></div>
 
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {mode === 'register' && (
